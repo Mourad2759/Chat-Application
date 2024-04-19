@@ -6,7 +6,33 @@
 
 using namespace std;
 
+bool is_valid_password(const string& password) {
+    bool has_upper = false;
+    bool has_lower = false;
+    bool has_digit = false;
+    bool has_special = false;
+
+    for (char c : password) {
+        if (isupper(c)) {
+            has_upper = true;
+        } else if (islower(c)) {
+            has_lower = true;
+        } else if (isdigit(c)) {
+            has_digit = true;
+        } else if (ispunct(c)) {
+            has_special = true;
+        }
+    }
+
+    return password.length() >= 8 && has_upper && has_lower && has_digit && has_special;
+}
+
 bool register_user(const string& username, const string& password) {
+
+    if (!is_valid_password(password)) {
+        cerr << "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character." << endl;
+        return false;
+    }
     // Open the credentials file in append mode
     ofstream outfile("credentials.txt", ios::app);
     if (!outfile)
