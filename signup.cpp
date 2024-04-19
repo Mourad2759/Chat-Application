@@ -28,11 +28,6 @@ bool is_valid_password(const string& password) {
 }
 
 bool register_user(const string& username, const string& password) {
-
-    if (!is_valid_password(password)) {
-        cerr << "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character." << endl;
-        return false;
-    }
     // Open the credentials file in append mode
     ofstream outfile("credentials.txt", ios::app);
     if (!outfile)
@@ -67,8 +62,17 @@ int main() {
     cout << "Enter a new username: ";
     getline(cin, username);
 
-    cout << "Enter a password: ";
-    getline(cin, password);
+    // Prompt user to enter password until it meets the requirements
+    while (true) {
+        cout << "Enter a password: ";
+        getline(cin, password);
+
+        if (is_valid_password(password)) {
+            break; // Exit the loop if password meets the requirements
+        } else {
+            cout << "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character." << endl;
+        }
+    }
 
     if (register_user(username, password)) {
         cout << "Registration successful!" << endl;
