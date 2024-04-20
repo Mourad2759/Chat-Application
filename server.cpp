@@ -31,13 +31,12 @@ int seed = 0;
 mutex cout_mtx, clients_mtx;
 
 string color(int code);
-void set_name(int id, const char);
+void set_name(int id, const char *name);
 void shared_print(string str, bool endLine);
 void broadcast_message(string message, int sender_id);
 void broadcast_message(int num, int sender_id);
 void end_connection(int id);
 void handle_client(int client_socket, int id);
-bool register_user(int client_socket);
 string authenticate_user(int client_socket);
 string encrypt_message(const string& message, int key);
 string decrypt_message(const string& encrypted_message, int key);
