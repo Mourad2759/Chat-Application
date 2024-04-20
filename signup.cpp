@@ -6,6 +6,115 @@
 
 using namespace std;
 
+const int TABLE_SIZE = 100; // Adjust the size as needed
+
+struct Node {
+    string username;
+    string hashed_pass;
+    Node* next;
+
+    Node(const string& u, const string& h) : username(u), hashed_pass(h), next(nullptr) {}
+};
+
+class HashMap {
+private:
+    Node* table[TABLE_SIZE];
+
+    int hashFunction1(const string& key) {
+        int hashValue = 0;
+        for (char c : key) {
+            hashValue += c;
+        }
+        return hashValue % TABLE_SIZE;
+    }
+
+    int hashFunction2(const string& key) {
+        int hashValue = 0;
+        for (char c : key) {
+            hashValue += c * 31; // Using a different prime number as a multiplier for the second hash function
+        }
+        return (hashValue % 97) + 1; // Ensuring the second hash value is non-zero and less than TABLE_SIZE
+    }
+
+public:
+    HashMap() {
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            table[i] = nullptr;
+        }
+    }
+
+    ~HashMap() {
+        // Perform cleanup if needed
+    }
+
+    void insert(const string& username, const string& hashed_pass) {
+        int index = hashFunction1(username);
+        if (table[index] == nullptr) {
+            table[index] = new Node(username, hashed_pass);
+        } else {
+            // Use double hashing for collision resolution
+            int index2 = hashFunction2(username);
+            int step = 1;
+            while (true) {
+                int newIndex = (index + step * index2) % TABLE_SIZE;
+                if (table[newIndex] == nullptr) {
+                    table[newIndex] = new Node(username, hashed_pass);
+                    break;
+                }
+                ++step;
+            }
+        }
+    }
+
+    // Function to check if a username already exists in the hashmap
+    bool usernameExists(const string& username) {
+        int index = hashFunction1(username);
+        int index2 = hashFunction2(username);
+        int step = 1;
+        while (true) {
+            int newIndex = (index + step * index2) % TABLE_SIZE;
+            if (table[newIndex] == nullptr) {
+                return false; // Username not found
+            } else if (table[newIndex]->username == username) {
+                return true; // Username found
+            }
+            ++step;
+        }
+    }
+
+    // Function to save user credentials to a text file
+    void saveToFile(const string& filename) {
+        ofstream outfile(filename, ios::app); // Open file in append mode
+        if (!outfile) {
+            cerr << "Failed to open file for writing." << endl;
+            return;
+        }
+
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            Node* current = table[i];
+            while (current != nullptr) {
+                outfile << current->username << "," << current->hashed_pass << endl;
+                current = current->next;
+            }
+        }
+        outfile.close();
+    }
+};
+
+// Function to hash the password using SHA-256 algorithm
+string hash_password(const string& password) {
+    unsigned char hashed_pass[SHA256_DIGEST_LENGTH];
+    SHA256((const unsigned char *)password.c_str(), password.length(), hashed_pass);
+
+    // Convert the hash to a string
+    stringstream hashed_pass_ss;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
+        hashed_pass_ss << hex << setw(2) << setfill('0') << (int)hashed_pass[i];
+    }
+    return hashed_pass_ss.str();
+}
+
+// Function to check if a password meets the requirements
 bool is_valid_password(const string& password) {
     bool has_upper = false;
     bool has_lower = false;
@@ -27,36 +136,32 @@ bool is_valid_password(const string& password) {
     return password.length() >= 8 && has_upper && has_lower && has_digit && has_special;
 }
 
-bool register_user(const string& username, const string& password) {
-    // Open the credentials file in append mode
-    ofstream outfile("credentials.txt", ios::app);
-    if (!outfile)
-    {
-        // Failed to open the file
-        cerr << "Failed to open credentials.txt file for writing." << endl;
+// Function to register a new user
+bool register_user(HashMap& hashmap, const string& username, const string& password) {
+    // Check if the password meets the requirements
+    if (!is_valid_password(password)) {
+        cerr << "Password does not meet the requirements." << endl;
         return false;
     }
 
-    // Hash the password using SHA-256
-    unsigned char hashed_pass[SHA256_DIGEST_LENGTH];
-    SHA256((const unsigned char *)password.c_str(), password.length(), hashed_pass);
+    // Hash the password
+    string hashed_pass = hash_password(password);
 
-    // Convert the hashed password to a string for storage
-    stringstream hashed_pass_ss;
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
-    {
-        hashed_pass_ss << hex << setw(2) << setfill('0') << (int)hashed_pass[i];
+    // Check if the username already exists
+    if (hashmap.usernameExists(username)) {
+        cerr << "Username already exists." << endl;
+        return false;
     }
-    string hashed_pass_str = hashed_pass_ss.str();
 
-    // Write the new user credentials to the file with comma separation
-    outfile << username << "," << hashed_pass_str << endl;
-    outfile.close();
+    // Insert the username and hashed password into the hashmap
+    hashmap.insert(username, hashed_pass);
 
     return true;
 }
 
 int main() {
+    HashMap hashmap;
+
     string username, password;
 
     cout << "Enter a new username: ";
@@ -74,8 +179,11 @@ int main() {
         }
     }
 
-    if (register_user(username, password)) {
+    if (register_user(hashmap, username, password)) {
         cout << "Registration successful!" << endl;
+        
+        // Save user credentials to a text file
+        hashmap.saveToFile("credentials.txt");
     } else {
         cout << "Registration failed. Please try again later." << endl;
     }
