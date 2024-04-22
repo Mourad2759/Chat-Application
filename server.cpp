@@ -16,6 +16,7 @@
 
 using namespace std;
 
+// Structure to represent a terminal
 struct terminal
 {
     int id;
@@ -43,31 +44,36 @@ string decrypt_message(const string& encrypted_message, int key);
 
 int main()
 {
+    // Creates server socket
     int server_socket;
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
         perror("socket: ");
         exit(-1);
     }
-
+  
+    // Initialize server address 
     struct sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_port = htons(10000);
     server.sin_addr.s_addr = INADDR_ANY;
     bzero(&server.sin_zero, 0);
-
+ 
+    // Binds server socket to the address
     if ((bind(server_socket, (struct sockaddr *)&server, sizeof(struct sockaddr_in))) == -1)
     {
         perror("bind error: ");
         exit(-1);
     }
 
+    // Listens for incoming connections
     if ((listen(server_socket, 8)) == -1)
     {
         perror("listen error: ");
         exit(-1);
     }
 
+    // Accept incoming connections
     struct sockaddr_in client;
     int client_socket;
     unsigned int len = sizeof(sockaddr_in);
@@ -125,7 +131,7 @@ void shared_print(string str, bool endLine = true)
         cout << endl;
 }
 
-// Broadcast message to all clients except the sender
+// Broadcasts message to all clients except the sender
 void broadcast_message(string message, int sender_id)
 {
     char encrypted_message[MAX_LEN];
@@ -139,7 +145,7 @@ void broadcast_message(string message, int sender_id)
     }
 }
 
-// Broadcast a number to all clients except the sender
+// Broadcasts a number to all clients except the sender
 void broadcast_message(int num, int sender_id)
 {
     for (int i = 0; i < clients.size(); i++)
@@ -151,6 +157,7 @@ void broadcast_message(int num, int sender_id)
     }
 }
 
+// terminates connection for a client
 void end_connection(int id)
 {
     for (int i = 0; i < clients.size(); i++)
@@ -211,6 +218,7 @@ void handle_client(int client_socket, int id)
     }
 }
 
+// Function to authenticate user
 string authenticate_user(int client_socket)
 {
     char username[MAX_LEN], password[MAX_LEN];
@@ -276,6 +284,7 @@ string authenticate_user(int client_socket)
     return authenticated_username;
 }
 
+// Function to encrypt message using Caesar Cipher
 string encrypt_message(const string& message, int key) {
     string encrypted_message = message;
     for (char& c : encrypted_message) {
@@ -287,6 +296,7 @@ string encrypt_message(const string& message, int key) {
     return encrypted_message;
 }
 
+// Function to decrypt message using Caesar Cipher
 string decrypt_message(const string& encrypted_message, int key) {
     string decrypted_message = encrypted_message;
     for (char& c : decrypted_message) {
