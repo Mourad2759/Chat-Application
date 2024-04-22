@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const int TABLE_SIZE = 100; // Adjust the size as needed
+const int TABLE_SIZE = 100; 
 
 struct Node {
     string username;
@@ -33,7 +33,7 @@ private:
         for (char c : key) {
             hashValue += c * 31; // Using a different prime number as a multiplier for the second hash function
         }
-        return (hashValue % 97) + 1; // Ensuring the second hash value is non-zero and less than TABLE_SIZE
+        return (hashValue % 97) + 1; // Ensures the second hash value is non-zero and less than TABLE_SIZE
     }
 
 public:
@@ -44,7 +44,6 @@ public:
     }
 
     ~HashMap() {
-        // Perform cleanup if needed
     }
 
     void insert(const string& username, const string& hashed_pass) {
