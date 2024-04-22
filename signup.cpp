@@ -8,6 +8,7 @@ using namespace std;
 
 const int TABLE_SIZE = 100; 
 
+// Structure to represent a node in the hashmap
 struct Node {
     string username;
     string hashed_pass;
@@ -16,10 +17,12 @@ struct Node {
     Node(const string& u, const string& h) : username(u), hashed_pass(h), next(nullptr) {}
 };
 
+// Class representing a hashmap for storing user credentials
 class HashMap {
 private:
     Node* table[TABLE_SIZE];
 
+    // First hash function
     int hashFunction1(const string& key) {
         int hashValue = 0;
         for (char c : key) {
@@ -28,6 +31,7 @@ private:
         return hashValue % TABLE_SIZE;
     }
 
+    // second hash function
     int hashFunction2(const string& key) {
         int hashValue = 0;
         for (char c : key) {
@@ -46,6 +50,7 @@ public:
     ~HashMap() {
     }
 
+    // Function to insert a new user into the hashmap
     void insert(const string& username, const string& hashed_pass) {
         int index = hashFunction1(username);
         if (table[index] == nullptr) {
