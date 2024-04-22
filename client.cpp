@@ -22,7 +22,7 @@ string colors[] = {"\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m", "
 
 void catch_ctrl_c(int signal);
 string color(int code);
-void eraseText(int cnt); // Updated function signature
+void eraseText(int cnt); 
 void send_message(int client_socket, int encryption_key);
 void recv_message(int client_socket, int encryption_key);
 void display_main_menu(int client_socket);
