@@ -32,12 +32,13 @@ string decrypt_message(const string& encrypted_message, int key);
 
 int main()
 {
+    // Creates a socket
     if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
         perror("socket: ");
         exit(-1);
     }
-
+    // Initializes client socket
     struct sockaddr_in client;
     client.sin_family = AF_INET;
     client.sin_port = htons(10000); // Port no. of server
@@ -45,6 +46,7 @@ int main()
     //client.sin_addr.s_addr=inet_addr("127.0.0.1"); // Provide IP address of server
     bzero(&client.sin_zero, 0);
 
+    // Connects to server
     if ((connect(client_socket, (struct sockaddr *)&client, sizeof(struct sockaddr_in))) == -1)
     {
         perror("connect: ");
@@ -52,18 +54,20 @@ int main()
     }
     signal(SIGINT, catch_ctrl_c);
 
+    // Displays main menu
     display_main_menu(client_socket);
 
-    // Inside main function
-    int encryption_key = 5; // Example encryption key
+    int encryption_key = 5; // Encryption Key
 
+    // Creates sends and receives threads
     thread t1(std::bind(send_message, client_socket, encryption_key));
     thread t2(std::bind(recv_message, client_socket, encryption_key));
 
-
+    // Moves threads to t_send and t_recv
     t_send = move(t1);
     t_recv = move(t2);
 
+    // Joins threads
     if (t_send.joinable())
         t_send.join();
     if (t_recv.joinable())
@@ -84,12 +88,13 @@ void catch_ctrl_c(int signal)
     exit(signal);
 }
 
+// Function to return color code
 string color(int code)
 {
     return colors[code % NUM_COLORS];
 }
 
-// Erase text from terminal
+// Function to Erase text from terminal
 void eraseText(int cnt)
 {
     char back_space = 8;
@@ -99,7 +104,7 @@ void eraseText(int cnt)
     }
 }
 
-// Send message to everyone
+// Function to send messages to everyone
 void send_message(int client_socket, int encryption_key) {
     while (1) {
         cout << colors[1] << "You : " << def_col;
@@ -116,8 +121,7 @@ void send_message(int client_socket, int encryption_key) {
     }
 }
 
-
-// Receive message
+// Function to receive messages
 void recv_message(int client_socket, int encryption_key) {
     while (1) {
         if (exit_flag)
@@ -142,6 +146,7 @@ void recv_message(int client_socket, int encryption_key) {
     }
 }
 
+// Function to display main menu
 void display_main_menu(int client_socket)
 {
     int choice;
@@ -170,6 +175,7 @@ void display_main_menu(int client_socket)
     } while (true);
 }
 
+// Function to authenticate user
 void authenticate_user(int client_socket)
 {
     char username[MAX_LEN];
@@ -200,6 +206,7 @@ void authenticate_user(int client_socket)
     }
 }
 
+// Function to encrypt message using Caesar Cipher
 string encrypt_message(const string& message, int key) {
     string encrypted_message = message;
     for (char& c : encrypted_message) {
@@ -211,6 +218,7 @@ string encrypt_message(const string& message, int key) {
     return encrypted_message;
 }
 
+// Function to decrypt message using Caesar Cipher
 string decrypt_message(const string& encrypted_message, int key) {
     string decrypted_message = encrypted_message;
     for (char& c : decrypted_message) {
